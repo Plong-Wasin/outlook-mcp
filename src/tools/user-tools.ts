@@ -31,9 +31,11 @@ export function registerUserTools(server: McpServer): void {
         let request = client.api(`/users?${queryParams.join("&")}`);
 
         if (search) {
-          request = request
+          queryParams.push("$count=true");
+          request = client
+            .api(`/users?${queryParams.join("&")}`)
             .header("ConsistencyLevel", "eventual")
-            .search(`"displayName:${search} OR mail:${search} OR userPrincipalName:${search}"`);
+            .search(`"displayName:${search}" OR "mail:${search}" OR "userPrincipalName:${search}"`);
         }
 
         const users = await request.get();
