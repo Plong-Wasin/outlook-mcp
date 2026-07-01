@@ -4,6 +4,7 @@ import fs from "fs";
 import path from "path";
 import { getGraphClient } from "../graph/client.js";
 import { handleGraphError } from "../utils/error-handler.js";
+import { findUnsupportedCss } from "../utils/html-validation.js";
 
 const MAX_ATTACHMENT_BYTES = 3 * 1024 * 1024; // 3 MB
 
@@ -94,6 +95,13 @@ export function registerEmailTools(server: McpServer): void {
     },
     async ({ to, cc, bcc, subject, body, contentType, attachments }) => {
       try {
+        if (contentType === "html") {
+          const cssError = findUnsupportedCss(body);
+          if (cssError) {
+            return { content: [{ type: "text", text: cssError }] };
+          }
+        }
+
         let attachmentPayload: ReturnType<typeof buildAttachments>;
         try {
           attachmentPayload = buildAttachments(attachments);
@@ -151,6 +159,13 @@ export function registerEmailTools(server: McpServer): void {
     },
     async ({ to, cc, bcc, subject, body, contentType, attachments }) => {
       try {
+        if (contentType === "html") {
+          const cssError = findUnsupportedCss(body);
+          if (cssError) {
+            return { content: [{ type: "text", text: cssError }] };
+          }
+        }
+
         let attachmentPayload: ReturnType<typeof buildAttachments>;
         try {
           attachmentPayload = buildAttachments(attachments);
@@ -220,6 +235,13 @@ export function registerEmailTools(server: McpServer): void {
     },
     async ({ messageId, subject, body, contentType, to, cc, bcc }) => {
       try {
+        if (body !== undefined && contentType === "html") {
+          const cssError = findUnsupportedCss(body);
+          if (cssError) {
+            return { content: [{ type: "text", text: cssError }] };
+          }
+        }
+
         const patch: any = {};
 
         if (subject !== undefined) patch.subject = subject;
